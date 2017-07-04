@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>后台动态数据变化（ajax+动态绑定）</title>
+	<style type="text/css">
+	.img1{
+		display: block;
+	}
+	.img2{
+		vertical-align: top;
+	}
+
+
+	#app{
+		position: relative;
+		height: 200px;
+		width: 200px;
+	}
+	.test{
+		position: absolute;
+		background-color: black;
+		height: 50px;
+		width:50px;
+		margin-left: 75px;
+		margin-right:75px; 
+	}
+	</style>
+	<script type="text/javascript" src="js/jquery-1.11.2.js"></script>
+	<script type="text/javascript" src="js/underscore.min.js"></script>
+</head>
+<body>
+	<div id="app">
+		<div class="test"></div>
+	</div>
+	<script type="text/javascript">
+
+
+		var app = document.getElementById("app");
+		setInterval(function(){
+				var aj = new AJ({
+				ele:"app",
+				data:{
+					text:''
+				}
+				
+			})
+		},5000);
+
+		setTimeout(function(){
+			window.clearInterval();
+		},20000);
+
+
+		(function(){
+			window.AJ = AJ = function(options){
+				
+				var XHRobj = AJ.initAJ();  //这里对象初始化重复了
+				var urlarr = ["demo1.php","demo.php"];
+				setInterval(AJ.sendAJ(XHRobj,"Post",urlarr,true,"str",options),5000);  
+				//注意对象的初始化不能初始化多个对象，不如用参数传递
+				
+				this.data = options.data;    //options undefined
+ 
+
+			}
+
+			AJ.Fragment = function(){
+				
+			}
+
+			AJ.initAJ = function(){//新建对象
+				var obj = new XMLHttpRequest();
+				return obj;
+			}
+
+
+			AJ.responseAJ = function(responsecontent,id){
+				var XHRobj = AJ.initAJ();
+				if(typeof responsecontent == "string"){
+					document.getElementById(id).innerHTML = responsecontent;
+				}
+				//if(typeof)
+			}
+			AJ.sendAJ = function(XHR,method,url,async,str,options){//发送请求
+				var i = 0;
+				setInterval(function(){
+					if(i >= url.length){
+						window.clearInterval();
+					}
+					else{
+						XHR.open(method,url[i],async);
+						if(method == "Post" && str != null)
+							XHR.send(str);
+						else
+							XHR.send();	
+						i++;
+						XHR.onreadystatechange = function(){
+							if(XHR.readyState == 4 && XHR.status == 200)
+							{
+								options.data.text = XHR.responseText;   //options undefined
+								AJ.responseAJ(XHR.responseText,options.ele);
+								
+							}
+						}
+					}
+				},5000)
+				return this;
+			}
+
+			
+
+			AJ.defineView = function(key,val){
+				Object.defineProperty(AJ,key,{
+					get:function(){
+						return val;
+					},
+					set:function(newVal){
+						if(newVal == val)
+							return val;
+						val = newVal;
+						return val;
+					}
+				})
+			}
+
+
+		}())
+
+
+
+	
+
+	</script>
+</body>
+</html>
